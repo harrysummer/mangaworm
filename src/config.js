@@ -2,6 +2,9 @@ import path from 'path';
 import AppDirectory from 'appdirectory';
 import fs from 'fs';
 import Promise from 'bluebird';
+import inquirer from 'inquirer';
+import yaml from 'js-yaml';
+import mkdirp from 'mkdirp';
 import dmzj from './server/dmzj';
 
 export const app_name = "mangaworm";
@@ -24,21 +27,55 @@ export default class Config {
 
     this.onParseFinished = Promise.promisify(fs.access)
     (this.config_file, fs.constants.F_OK)
-      .catch(() => {
-        if (!this.create()) {
+      .catch(() =>
+        this.create()
+        .catch(() => {
           console.log('No config file. Exit.');
           process.exit(-1);
-        }
-      })
+        })
+      )
       .finally(() => this.parse(this.config_file));
   }
 
   create() {
-    console.log('config.create not implemented');
-    return false;
+    console.log('No configuaration found. Create one.');
+    return inquirer.prompt([
+      {
+        type: 'input',
+        name: 'server_name',
+        message: 'Mongodb server name',
+        default: 'localhost',
+      },
+      {
+        type: 'input',
+        name: 'server_port',
+        message: 'Mongodb server port',
+        default: 27017,
+      },
+      {
+        type: 'input',
+        name: 'database',
+        message: 'Name of the database',
+        default: 'mangaworm'
+      },
+    ])
+    .then((answer) => {
+      let configContent = yaml.safeDump(answer);
+      console.log(this.config_file);
+      return Promise.promisify(mkdirp)(path.dirname(this.config_file))
+      .then(() =>
+        Promise.promisify(fs.writeFile)(this.config_file, configContent));
+    });
   }
 
   parse() {
-    console.log('config.parse not implemented');
+    return Promise.promisify(fs.readFile)(this.config_file)
+    .then((content) => {
+      this.config = yaml.safeLoad(content);
+    });
+  }
+
+  get(name) {
+    return this.config[name];
   }
 };
