@@ -90,6 +90,7 @@ export default class {
           }]),
       }));
 
+    data.url = url;
     data.blocked = 'blocked' in data;
     if (!data.blocked) {
       data.versions = [{

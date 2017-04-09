@@ -24,14 +24,18 @@ const fields = {
   }
 };
 
-async function show(id) {
-	let ret = /^([^\/]+)\/(.*)$/.exec(id);
-	if (ret != null) {
-		let repo = ret[1];
-		let name = ret[2];
-		if (repo in servers) {
-			let crawler = new servers[repo]();
-			let result = await crawler.query(name);
+async function show(id, raw) {
+  let ret = /^([^\/]+)\/(.*)$/.exec(id);
+  if (ret != null) {
+    let repo = ret[1];
+    let name = ret[2];
+    if (repo in servers) {
+      let crawler = new servers[repo]();
+      let result = await crawler.query(name);
+      if (raw) {
+        console.log(result);
+        return;
+      }
       fieldNames.forEach((field) => {
         if (field in result) {
           let f = fields[field];
@@ -52,17 +56,23 @@ async function show(id) {
             console.error('Error type');
           }
         }
-			});
-		} else {
-			throw new Error('Server "' + repo + '" is not available');
-		}
-	} else {
-		throw new Error('Id "' + id + '" is invalid.');
-	}
+      });
+    } else {
+      throw new Error('Server "' + repo + '" is not available');
+    }
+  } else {
+    throw new Error('Id "' + id + '" is invalid.');
+  }
 }
 
 export default {
-	command: 'show',
-	describe: 'Show online manga detail',
-	handler: (argv) => argv._.slice(1).forEach((id) => show(id))
+  command: 'show',
+  describe: 'Show online manga detail',
+  builder: {
+    raw: {
+      type: 'boolean',
+      alias: 'r',
+    },
+  },
+  handler: (argv) => argv._.slice(1).forEach((id) => show(id, argv.raw))
 };
