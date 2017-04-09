@@ -18,11 +18,11 @@ export default class MangaDB {
     delete this.db;
   }
 
-  async addManga(data) {
+  async updateManga(data) {
     if (!'db' in this)
       throw new Error('No database connected.');
 
     let collection = await this.db.createCollection('manga');
-    await collection.insertOne(data);
+    await collection.replaceOne({_id: data._id}, data, {upsert: true});
   }
 }

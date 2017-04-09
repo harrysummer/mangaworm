@@ -15,7 +15,9 @@ async function sync(db, id) {
   }
   let crawler = new servers[repo]();
   let result = await crawler.query(name);
-  await db.addManga(result);
+  result._id = result.id;
+  delete result.id;
+  await db.updateManga(result);
 }
 
 export default {

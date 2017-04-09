@@ -90,6 +90,7 @@ export default class {
           }]),
       }));
 
+    data.id = this.ID_PREFIX + id;
     data.url = url;
     data.blocked = 'blocked' in data;
     if (!data.blocked) {
