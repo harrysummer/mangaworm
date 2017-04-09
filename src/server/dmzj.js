@@ -1,3 +1,5 @@
+import vm from 'vm';
+import util from 'util';
 import Xray from 'x-ray';
 import makeDriver from 'request-x-ray';
 import request from 'request';
@@ -14,6 +16,7 @@ export default class {
   constructor() {
     this.ID_PREFIX = 'dmzj/'
     this.VOLUME_PAGE_PREFIX = 'http://manhua.dmzj.com/';
+    this.IMAGE_PREFIX = 'http://images.dmzj.com/';
   }
 
   getUrl(id) {
@@ -113,5 +116,15 @@ export default class {
       }
     }
     return data;
+  }
+
+  async browse(url) {
+    x.driver(makeDriver(request.defaults()));
+    let data = await promisifyCallback(x(
+      url,
+      'head script:contains("arr_pages")'));
+    const sandbox = { res_id: "", chapter_id: "" };
+    vm.runInNewContext(data, sandbox);
+    return _.map(sandbox.arr_pages, (s) => this.IMAGE_PREFIX + s);
   }
 };
