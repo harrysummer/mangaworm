@@ -1,9 +1,9 @@
 import colors from 'ansi-256-colors'
 import { servers } from '../config'
-import { awaitAll } from '../async-api';
+import { all } from '../async-api';
 
 async function search(query, raw) {
-  awaitAll(servers, async (server,repo) => {
+  await all(servers, async (server,repo) => {
     let crawler = new server();
     let result = await crawler.search(query);
     if (raw) {

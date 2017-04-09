@@ -13,12 +13,16 @@ export default class MangaDB {
   }
 
   async disconnect() {
-    if (db in this)
+    if ('db' in this)
       await this.db.close();
     delete this.db;
   }
 
   async addManga(data) {
-    
+    if (!'db' in this)
+      throw new Error('No database connected.');
+
+    let collection = await this.db.createCollection('manga');
+    await collection.insertOne(data);
   }
 }

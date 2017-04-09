@@ -26,43 +26,41 @@ const fields = {
 
 async function show(id, raw) {
   let ret = /^([^\/]+)\/(.*)$/.exec(id);
-  if (ret != null) {
-    let repo = ret[1];
-    let name = ret[2];
-    if (repo in servers) {
-      let crawler = new servers[repo]();
-      let result = await crawler.query(name);
-      if (raw) {
-        console.log(result);
-        return;
-      }
-      fieldNames.forEach((field) => {
-        if (field in result) {
-          let f = fields[field];
-          if (typeof f === 'function') {
-            let ret = f(result[field]);
-            if (typeof ret === 'string')
-              console.log(ret);
-            else if (typeof ret === 'boolean' && !ret) {
-              // Do nothing
-            } else {
-              console.error('Error type');
-            }
-          } else if (typeof f === 'string') {
-            console.log(colors.fg.standard[6] + f + '：' + colors.reset + result[field]);
-          } else if (typeof f === 'boolean' && !f) {
-            // Do nothing
-          } else {
-            console.error('Error type');
-          }
-        }
-      });
-    } else {
-      throw new Error('Server "' + repo + '" is not available');
-    }
-  } else {
+  if (ret == null) {
     throw new Error('Id "' + id + '" is invalid.');
   }
+  let repo = ret[1];
+  let name = ret[2];
+  if (!repo in servers) {
+    throw new Error('Server "' + repo + '" is not available');
+  }
+  let crawler = new servers[repo]();
+  let result = await crawler.query(name);
+  if (raw) {
+    console.log(result);
+    return;
+  }
+  fieldNames.forEach((field) => {
+    if (field in result) {
+      let f = fields[field];
+      if (typeof f === 'function') {
+        let ret = f(result[field]);
+        if (typeof ret === 'string')
+          console.log(ret);
+        else if (typeof ret === 'boolean' && !ret) {
+          // Do nothing
+        } else {
+          console.error('Error type');
+        }
+      } else if (typeof f === 'string') {
+        console.log(colors.fg.standard[6] + f + '：' + colors.reset + result[field]);
+      } else if (typeof f === 'boolean' && !f) {
+        // Do nothing
+      } else {
+        console.error('Error type');
+      }
+    }
+  });
 }
 
 export default {

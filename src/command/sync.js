@@ -1,7 +1,21 @@
-import Config from '../config';
+import _ from 'underscore';
+import Config, { servers } from '../config'
+import DB from '../database';
+import { all } from '../async-api';
 
-function sync(config, id) {
-  console.log('sync(config, id) not implemented');
+async function sync(db, id) {
+  let ret = /^([^\/]+)\/(.*)$/.exec(id);
+  if (ret == null) {
+    throw new Error('Id "' + id + '" is invalid.');
+  }
+  let repo = ret[1];
+  let name = ret[2];
+  if (!repo in servers) {
+    throw new Error('Server "' + repo + '" is not available');
+  }
+  let crawler = new servers[repo]();
+  let result = await crawler.query(name);
+  await db.addManga(result);
 }
 
 export default {
@@ -10,6 +24,9 @@ export default {
   handler: async (argv) => {
     let config = new Config();
     let conf = await config.parse();
-    argv._.slice(1).forEach((id) => sync(conf, id));
+    let db = new DB();
+    await db.connect(conf.server_name, conf.server_port, conf.database);
+    await all(_.map(argv._.slice(1), (id) => sync(db, id)));
+    await db.disconnect();
   }
 }
