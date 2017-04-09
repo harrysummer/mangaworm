@@ -1,8 +1,8 @@
 import Xray from 'x-ray';
 import makeDriver from 'request-x-ray';
-import Promise from 'bluebird';
 import request from 'request';
 import _ from 'underscore';
+import { promisifyCallback } from '../async-api';
 
 let x = Xray({
   filters: {
@@ -26,7 +26,7 @@ export default class {
       form: { keywords: keyword },
     });
     x.driver(driver);
-    let data = await Promise.fromCallback(x(
+    let data = await promisifyCallback(x(
         'https://www.dmzj.com/dynamic/o_search/index',
         '.wrap_list_con li',
         [{
@@ -42,7 +42,7 @@ export default class {
       if (id === null)
         id = /^https?:\/\/www\.dmzj\.com\/info\/(.*)\.html$/.exec(item.url);
       if (id === null)
-        return Promise.reject(new Error('Url error: ' + item.url));
+        throw new Error('Url error: ' + item.url);
       id = id[1];
       delete item.url;
       item.id = this.ID_PREFIX + id;
@@ -58,7 +58,7 @@ export default class {
   async query(id) {
     let url = this.getUrl(id);
     x.driver(makeDriver(request.defaults()));
-    let data = await Promise.fromCallback(x(
+    let data = await promisifyCallback(x(
       url,
       '.wrap',
       {
