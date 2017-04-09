@@ -1,14 +1,15 @@
 import util from 'util';
-import { mongodb } from './async-api';
+import mongodb from 'mongodb';
+import { promisify } from '../async-api';
 
 export default class MangaDB {
   constructor() {
-    this.client = db.MongoClient;
+    this.client = mongodb.MongoClient;
   }
 
-  connect(server_name, server_port, db_name) {
+  async connect(server_name, server_port, db_name) {
     this.url = util.format('mongodb://%s:%d/%s',
       server_name, server_port, db_name);
-    //return this.client.connect(url
+    this.db = await promisify(this.client.connect)(this.url);
   }
 }

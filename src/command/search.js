@@ -1,9 +1,10 @@
 import colors from 'ansi-256-colors'
 import { servers } from '../config'
+import { awaitAll } from '../async-api';
 
 async function search(query) {
-  for (let repo in servers) {
-    let crawler = new servers[repo]();
+  awaitAll(servers, async (server,repo) => {
+    let crawler = new server();
     let result = await crawler.search(query);
     result.forEach((item) => {
       console.log(colors.fg.bright[2] + item.id + colors.reset);
@@ -13,7 +14,7 @@ async function search(query) {
           colors.fg.bright[1] + "已完结" : '')
         + colors.reset);
     });
-  }
+  });
 };
 
 export default {
