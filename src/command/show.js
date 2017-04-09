@@ -1,5 +1,4 @@
 import colors from 'ansi-256-colors'
-import Promise from 'bluebird'
 import { servers } from '../config'
 
 const fieldNames = [
@@ -25,42 +24,40 @@ const fields = {
   }
 };
 
-function show(id) {
+async function show(id) {
 	let ret = /^([^\/]+)\/(.*)$/.exec(id);
 	if (ret != null) {
 		let repo = ret[1];
 		let name = ret[2];
 		if (repo in servers) {
 			let crawler = new servers[repo]();
-			crawler.query(name)
-			.then((data) => {
-        fieldNames.forEach((field) => {
-          if (field in data) {
-            let f = fields[field];
-            if (typeof f === 'function') {
-              let ret = f(data[field]);
-              if (typeof ret === 'string')
-                console.log(ret);
-              else if (typeof ret === 'boolean' && !ret) {
-                // Do nothing
-              } else {
-                console.error('Error type');
-              }
-            } else if (typeof f === 'string') {
-              console.log(colors.fg.standard[6] + f + '：' + colors.reset + data[field]);
-            } else if (typeof f === 'boolean' && !f) {
+			let result = await crawler.query(name);
+      fieldNames.forEach((field) => {
+        if (field in result) {
+          let f = fields[field];
+          if (typeof f === 'function') {
+            let ret = f(result[field]);
+            if (typeof ret === 'string')
+              console.log(ret);
+            else if (typeof ret === 'boolean' && !ret) {
               // Do nothing
             } else {
               console.error('Error type');
             }
+          } else if (typeof f === 'string') {
+            console.log(colors.fg.standard[6] + f + '：' + colors.reset + result[field]);
+          } else if (typeof f === 'boolean' && !f) {
+            // Do nothing
+          } else {
+            console.error('Error type');
           }
-        });
+        }
 			});
 		} else {
-			Promise.reject(new Error('Server "' + repo + '" is not available'));
+			throw new Error('Server "' + repo + '" is not available');
 		}
 	} else {
-		Promise.reject(new Error('Id "' + id + '" is invalid.'));
+		throw new Error('Id "' + id + '" is invalid.');
 	}
 }
 
@@ -68,5 +65,4 @@ export default {
 	command: 'show',
 	describe: 'Show online manga detail',
 	handler: (argv) => argv._.slice(1).forEach((id) => show(id))
-	
 };

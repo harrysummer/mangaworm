@@ -1,11 +1,9 @@
 import path from 'path';
 import AppDirectory from 'appdirectory';
-import fs from 'fs';
-import Promise from 'bluebird';
 import inquirer from 'inquirer';
 import yaml from 'js-yaml';
-import mkdirp from 'mkdirp';
 import dmzj from './server/dmzj';
+import { fs } from './async-api';
 
 export const app_name = "mangaworm";
 
@@ -24,22 +22,11 @@ export default class Config {
     } else {
       this.config_file = path.normalize(file_name);
     }
-
-    this.onParseFinished = Promise.promisify(fs.access)
-    (this.config_file, fs.constants.F_OK)
-      .catch(() =>
-        this.create()
-        .catch(() => {
-          console.log('No config file. Exit.');
-          process.exit(-1);
-        })
-      )
-      .finally(() => this.parse(this.config_file));
   }
 
-  create() {
+  async create() {
     console.log('No configuaration found. Create one.');
-    return inquirer.prompt([
+    let answer = await inquirer.prompt([
       {
         type: 'input',
         name: 'server_name',
@@ -58,24 +45,33 @@ export default class Config {
         message: 'Name of the database',
         default: 'mangaworm'
       },
-    ])
-    .then((answer) => {
-      let configContent = yaml.safeDump(answer);
-      console.log(this.config_file);
-      return Promise.promisify(mkdirp)(path.dirname(this.config_file))
-      .then(() =>
-        Promise.promisify(fs.writeFile)(this.config_file, configContent));
-    });
+    ]);
+
+    let configContent = yaml.safeDump(answer);
+    console.log('Wrting configuration to ' + this.config_file);
+    await fs.mkdirpAsync(path.dirname(this.config_file));
+    await fs.writeFileAsync(this.config_file, configContent);
   }
 
-  parse() {
-    return Promise.promisify(fs.readFile)(this.config_file)
-    .then((content) => {
-      this.config = yaml.safeLoad(content);
-    });
-  }
+  async parse() {
+    try {
+      await fs.accessAsync(this.config_file, fs.constants.F_OK);
+    } catch(err) {
+      try {
+        await this.create();
+      } catch(err) {
+        console.error('Cannnot create configuration file.');
+        process.exit(-1);
+      }
+    }
 
-  get(name) {
-    return this.config[name];
+    let content;
+    try {
+      content = await fs.readFileAsync(this.config_file);
+    } catch(err) {
+      console.log(err.message);
+      process.exit(-1);
+    }
+    return yaml.safeLoad(content);
   }
 };

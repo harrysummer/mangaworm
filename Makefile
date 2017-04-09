@@ -28,5 +28,5 @@ run: all
 PERCENT = %
 $(TARGETS): %: $$(patsubst $(DISTDIR)/$$(PERCENT),$(SRCDIR)/$$(PERCENT),%)
 	@mkdir -p $(dir $@)
-	$(BABEL) -o $@ --presets env $<
+	$(BABEL) -o $@ $<
 

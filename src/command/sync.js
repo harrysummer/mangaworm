@@ -7,9 +7,9 @@ function sync(config, id) {
 export default {
   command: 'sync',
   describe: 'Sync manga from online to local',
-  handler: (argv) => {
+  handler: async (argv) => {
     let config = new Config();
-    config.onParseFinished
-      .then(() => argv._.slice(1).forEach((id) => sync(config, id)));
+    let conf = await config.parse();
+    argv._.slice(1).forEach((id) => sync(conf, id));
   }
 }

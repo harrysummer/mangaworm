@@ -20,13 +20,13 @@ export default class {
     return this.VOLUME_PAGE_PREFIX + id;
   }
 
-  search(keyword) {
+  async search(keyword) {
     const driver = makeDriver({
       method: 'POST',
       form: { keywords: keyword },
     });
     x.driver(driver);
-    return Promise.fromCallback(x(
+    let data = await Promise.fromCallback(x(
         'https://www.dmzj.com/dynamic/o_search/index',
         '.wrap_list_con li',
         [{
@@ -35,32 +35,30 @@ export default class {
           thumbnail: 'a img[src]@src',
           url: 'a[href]@href',
           complete: 'p.over_comic',
-        }]))
-    .then((data) => {
-      data.forEach((item) => {
-        let id = /^https?:\/\/manhua\.dmzj\.com\/(.*)$/.exec(item.url);
-        if (id === null)
-          id = /^https?:\/\/www\.dmzj\.com\/info\/(.*)\.html$/.exec(item.url);
-        if (id === null)
-          return Promise.reject(new Error('Url error: ' + item.url));
-        id = id[1];
-        delete item.url;
-        item.id = this.ID_PREFIX + id;
+        }]));
 
-        if ('complete' in item)
-          item.complete = true;
-        else
-          item.complete = false;
-      });
-      return data;
+    data.forEach((item) => {
+      let id = /^https?:\/\/manhua\.dmzj\.com\/(.*)$/.exec(item.url);
+      if (id === null)
+        id = /^https?:\/\/www\.dmzj\.com\/info\/(.*)\.html$/.exec(item.url);
+      if (id === null)
+        return Promise.reject(new Error('Url error: ' + item.url));
+      id = id[1];
+      delete item.url;
+      item.id = this.ID_PREFIX + id;
+
+      if ('complete' in item)
+        item.complete = true;
+      else
+        item.complete = false;
     });
+    return data;
   }
 
-  query(id) {
+  async query(id) {
     let url = this.getUrl(id);
-    console.log(url);
     x.driver(makeDriver(request.defaults()));
-    return Promise.fromCallback(x(
+    let data = await Promise.fromCallback(x(
       url,
       '.wrap',
       {
@@ -90,29 +88,28 @@ export default class {
               url: 'a@href'
             }])
           }]),
-      }))
-    .then((data) => {
-      data.blocked = 'blocked' in data;
-      if (!data.blocked) {
-        data.versions = [{
-          version: 'default',
-          episodes: 'episodes' in data ? data.episodes : []
-        }];
-        delete data.episodes;
+      }));
 
-        if ('otherVersions' in data) {
-          data.otherVersions.forEach((v, i, arr) => arr[i] = /.*：(.*)/.exec(v)[1]);
-          let temp = _.zip(data.otherVersions, data.otherVersionEpisodes);
-          temp.forEach((v,i,arr) => {
-            arr[i] = _.object(['version', 'episodes'], v);
-            arr[i].episodes = arr[i].episodes.episodes;
-          });
-          data.versions = data.versions.concat(temp);
-          delete data.otherVersions;
-          delete data.otherVersionEpisodes;
-        }
+    data.blocked = 'blocked' in data;
+    if (!data.blocked) {
+      data.versions = [{
+        version: 'default',
+        episodes: 'episodes' in data ? data.episodes : []
+      }];
+      delete data.episodes;
+
+      if ('otherVersions' in data) {
+        data.otherVersions.forEach((v, i, arr) => arr[i] = /.*：(.*)/.exec(v)[1]);
+        let temp = _.zip(data.otherVersions, data.otherVersionEpisodes);
+        temp.forEach((v,i,arr) => {
+          arr[i] = _.object(['version', 'episodes'], v);
+          arr[i].episodes = arr[i].episodes.episodes;
+        });
+        data.versions = data.versions.concat(temp);
+        delete data.otherVersions;
+        delete data.otherVersionEpisodes;
       }
-      return data;
-    });
+    }
+    return data;
   }
 };
