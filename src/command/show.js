@@ -35,7 +35,7 @@ async function show(id, raw) {
     throw new Error('Server "' + repo + '" is not available');
   }
   let crawler = new servers[repo]();
-  let result = await crawler.query(name);
+  let result = await crawler.query(crawler.id2url(id));
   if (raw) {
     console.log(result);
     return;

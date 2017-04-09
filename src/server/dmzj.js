@@ -19,8 +19,19 @@ export default class {
     this.IMAGE_PREFIX = 'http://images.dmzj.com/';
   }
 
-  getUrl(id) {
-    return this.VOLUME_PAGE_PREFIX + id;
+  url2id(url) {
+    let id = /^https?:\/\/manhua\.dmzj\.com\/(.*)$/.exec(url);
+    if (id === null)
+      id = /^https?:\/\/www\.dmzj\.com\/info\/(.*)\.html$/.exec(url);
+    if (id === null)
+      throw new Error('Url error: ' + url);
+    return this.ID_PREFIX + id[1];
+  }
+
+  id2url(id) {
+    if (!id.startsWith(this.ID_PREFIX))
+      throw new Error('ID error: ' + id);
+    return this.VOLUME_PAGE_PREFIX + id.substr(this.ID_PREFIX.length);
   }
 
   async search(keyword) {
@@ -41,15 +52,7 @@ export default class {
         }]));
 
     data.forEach((item) => {
-      let id = /^https?:\/\/manhua\.dmzj\.com\/(.*)$/.exec(item.url);
-      if (id === null)
-        id = /^https?:\/\/www\.dmzj\.com\/info\/(.*)\.html$/.exec(item.url);
-      if (id === null)
-        throw new Error('Url error: ' + item.url);
-      id = id[1];
-      delete item.url;
-      item.id = this.ID_PREFIX + id;
-
+      item.id = this.url2id(item.url);
       if ('complete' in item)
         item.complete = true;
       else
@@ -58,8 +61,7 @@ export default class {
     return data;
   }
 
-  async query(id) {
-    let url = this.getUrl(id);
+  async query(url) {
     x.driver(makeDriver(request.defaults()));
     let data = await promisifyCallback(x(
       url,
@@ -93,7 +95,7 @@ export default class {
           }]),
       }));
 
-    data.id = this.ID_PREFIX + id;
+    data.id = this.url2id(url);
     data.url = url;
     data.blocked = 'blocked' in data;
     if (!data.blocked) {
