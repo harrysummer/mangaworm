@@ -77,7 +77,6 @@ async function sync(db, id, version, from, to) {
         referer: volume.url,
         retry: 1,
       });
-      console.log(imageData);
       imageData.volumeTitle = volume.title;
       imageData.volumeUrl = volume.url;
       imageData.mangaId = result.id;
@@ -85,7 +84,6 @@ async function sync(db, id, version, from, to) {
       imageData.pageNumber = index + 1;
 
       imageData._id = imageData.url;
-      console.log(imageData);
       await db.updateImage(imageData);
     });
   });

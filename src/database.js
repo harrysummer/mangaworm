@@ -1,9 +1,10 @@
 import util from 'util';
+import buffer from 'buffer';
 import mongodb from 'mongodb';
 
 export default class MangaDB {
   constructor() {
-    this.client = mongodb.MongoClient;
+    this.client = new mongodb.MongoClient();
   }
 
   async connect(server_name, server_port, db_name) {
@@ -37,7 +38,7 @@ export default class MangaDB {
   async updateImage(data) {
     if (!'db' in this)
       throw new Error('No database connected.');
-    data.data = new this.db.bson_serializer.Binary(image.data);
+    data.data = new mongodb.Binary(Buffer.from(data.data, 'binary'));
     let collection = await this.db.createCollection('image');
     collection.replaceOne({_id: data._id}, data, {upsert: true});
   }

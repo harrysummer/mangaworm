@@ -1,5 +1,9 @@
 import request from 'request-promise-native';
 import errors from 'request-promise-native/errors';
+import Bottleneck from 'bottleneck';
+import {promisify} from './async-api';
+
+let limiter = new Bottleneck(1, 100);
 
 export default class Downloader {
   constructor() {
@@ -31,7 +35,7 @@ export default class Downloader {
 
     for (let i = 0; i < nIters; i++) {
       try {
-        data = await request(opt);
+        data = await promisify(limiter.submit)(request, opt);
       } catch (e) {
         if (e instanceof errors.StatusCodeError && i < nIters - 1) {
           console.error(e.message + ' Retrying ' + url);
