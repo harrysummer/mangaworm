@@ -117,7 +117,10 @@ export default {
     let config = new Config();
     let conf = await config.parse();
     let db = new DB();
-    await db.connect(conf.server_name, conf.server_port, conf.database);
+    await db.connect(
+      conf.database.server_name,
+      conf.database.server_port,
+      conf.database.db_name);
     await all(_.map(argv._.slice(1),
       (id) => sync(db, id, argv.version, argv.from, argv.to)));
     await db.disconnect();

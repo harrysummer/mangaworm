@@ -31,7 +31,10 @@ export default {
     let config = new Config();
     let conf = await config.parse();
     let db = new DB();
-    await db.connect(conf.server_name, conf.server_port, conf.database);
+    await db.connect(
+      conf.database.server_name,
+      conf.database.server_port,
+      conf.database.db_name);
     await list(db, argv.raw);
     await db.disconnect();
   },

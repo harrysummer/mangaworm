@@ -41,13 +41,13 @@ export default class Config {
       },
       {
         type: 'input',
-        name: 'database',
+        name: 'db_name',
         message: 'Name of the database',
         default: 'mangaworm'
       },
     ]);
 
-    let configContent = yaml.safeDump(answer);
+    let configContent = yaml.safeDump({ database: answer });
     console.log('Wrting configuration to ' + this.config_file);
     await fs.mkdirpAsync(path.dirname(this.config_file));
     await fs.writeFileAsync(this.config_file, configContent);
