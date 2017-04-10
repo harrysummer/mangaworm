@@ -44,6 +44,19 @@ export default class MangaDB {
   }
 
   async findManga(id) {
-    return await this.db.collection('manga').find({}).toArray();
+    let query = {};
+    if (id !== undefined)
+      query._id = id;
+    return await this.db.collection('manga').find(query).toArray();
+  }
+
+  async findVolume(url) {
+    let query = {_id: url};
+    return await this.db.collection('volume').find(query).toArray();
+  }
+
+  async findImage(url) {
+    let query = {_id: url};
+    return await this.db.collection('image').find(query).toArray();
   }
 }

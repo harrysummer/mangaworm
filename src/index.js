@@ -4,6 +4,7 @@ import show from './command/show';
 import sync from './command/sync';
 import list from './command/list';
 import config from './command/config';
+import export_ from './command/export';
 
 yargs.usage('mangaworm -- your personal manga management software')
   .command(search)
@@ -11,6 +12,6 @@ yargs.usage('mangaworm -- your personal manga management software')
   .command(sync)
   .command(list)
   .command(config)
-  .command('export', 'Export manga book to PDF or CBZ format')
+  .command(export_)
   .help()
   .argv;
