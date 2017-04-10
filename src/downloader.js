@@ -2,6 +2,9 @@ import request from 'request-promise-native';
 import errors from 'request-promise-native/errors';
 
 export default class Downloader {
+  constructor() {
+  }
+
   async get(url, options) {
     let header = {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko', /* IE 11 on Windows 10 */
@@ -25,6 +28,7 @@ export default class Downloader {
 
     let nIters = 'retry' in options ? options.retry : 5;
     let data = null;
+
     for (let i = 0; i < nIters; i++) {
       try {
         data = await request(opt);
@@ -36,9 +40,11 @@ export default class Downloader {
           throw e;
         }
       }
-      console.log(data.statusCode);
-      console.log(data.headers);
-      return data.body;
+      return {
+        url: url,
+        type: data.headers['content-type'],
+        data: data.body,
+      };
     }
   }
 }

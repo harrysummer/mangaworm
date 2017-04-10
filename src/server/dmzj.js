@@ -127,6 +127,12 @@ export default class {
       'head script:contains("arr_pages")'));
     const sandbox = { res_id: "", chapter_id: "" };
     vm.runInNewContext(data, sandbox);
-    return _.map(sandbox.arr_pages, (s) => this.IMAGE_PREFIX + s);
+    return _.object(
+      ['url', 'pageCount', 'pages'],
+      [
+        url,
+        sandbox.g_max_pic_count,
+        _.map(sandbox.arr_pages, (s) => this.IMAGE_PREFIX + s)
+      ]);
   }
 };
