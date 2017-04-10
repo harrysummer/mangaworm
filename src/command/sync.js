@@ -6,7 +6,7 @@ import { all } from '../async-api';
 import inquirer from 'inquirer';
 import pace from 'pace';
 
-async function sync(db, id, version, from, to, force) {
+async function sync(db, id, version, from, to, force, quiet) {
   let ret = /^([^\/]+)\/(.*)$/.exec(id);
   if (ret == null) {
     throw new Error('Id "' + id + '" is invalid.');
@@ -46,17 +46,19 @@ async function sync(db, id, version, from, to, force) {
   volumes = volumes.slice(from, to);
 
   // User confirmation
-  console.log('即将同步以下' + volumes.length + '卷漫画：');
-  volumes.forEach((item) => console.log(item.title));
-  var answer = await inquirer.prompt([
-    {
-      type: 'confirm',
-      name: 'continue',
-      message: '请确认是否继续?'
-    }
-  ]);
-  if (!answer.continue)
-    return;
+  if (!quiet) {
+    console.log('即将同步以下' + volumes.length + '卷漫画：');
+    volumes.forEach((item) => console.log(item.title));
+    var answer = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'continue',
+        message: '请确认是否继续?'
+      }
+    ]);
+    if (!answer.continue)
+      return;
+  }
 
   result._id = result.id;
   await db.updateManga(result);
@@ -140,6 +142,12 @@ export default {
       default: false,
       describe: '强制下载',
     },
+    quiet: {
+      type: 'boolean',
+      alias: 'q',
+      default: false,
+      describe: '跳过确认'
+    },
   },
   handler: async (argv) => {
     let config = new Config();
@@ -147,7 +155,7 @@ export default {
     let db = new DB();
     await db.connect(conf.server_name, conf.server_port, conf.db_name);
     await all(_.map(argv._.slice(1),
-      (id) => sync(db, id, argv.version, argv.from, argv.to, argv.force)));
+      (id) => sync(db, id, argv.version, argv.from, argv.to, argv.force, argv.quiet)));
     await db.disconnect();
   }
 }

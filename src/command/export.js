@@ -7,7 +7,7 @@ import inquirer from 'inquirer';
 import util from 'util';
 import pace from 'pace';
 
-async function exportBook(id, db, version, from, to, output) {
+async function exportBook(id, db, version, from, to, output, quiet) {
   let manga = await db.findManga(id);
   if (manga.length == 0) {
     throw new Error('Manga not found in local database');
@@ -41,17 +41,19 @@ async function exportBook(id, db, version, from, to, output) {
   volumes = volumes.slice(from, to);
 
   // User confirmation
-  console.log('即将导出以下' + volumes.length + '卷漫画：');
-  volumes.forEach((item) => console.log(item.title));
-  var answer = await inquirer.prompt([
-    {
-      type: 'confirm',
-      name: 'continue',
-      message: '请确认是否继续?'
-    }
-  ]);
-  if (!answer.continue)
-    return;
+  if (!quiet) {
+    console.log('即将导出以下' + volumes.length + '卷漫画：');
+    volumes.forEach((item) => console.log(item.title));
+    var answer = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'continue',
+        message: '请确认是否继续?'
+      }
+    ]);
+    if (!answer.continue)
+      return;
+  }
 
   let zipfile = new yazl.ZipFile();
   zipfile.outputStream.pipe(fs.createWriteStream(output)).on('close',
@@ -109,14 +111,20 @@ export default {
       alias: 'o',
       describe: '保存文件名',
       demandOption: true,
-    }
+    },
+    quiet: {
+      type: 'boolean',
+      alias: 'q',
+      default: false,
+      describe: '跳过确认'
+    },
   },
   handler: async (argv) => {
     let config = new Config();
     let conf = await config.get('database');
     let db = new DB();
     await db.connect(conf.server_name, conf.server_port, conf.db_name);
-    await exportBook(argv.manga_id, db, argv.version, argv.from, argv.to, argv.output);
+    await exportBook(argv.manga_id, db, argv.version, argv.from, argv.to, argv.output, argv.quiet);
     await db.disconnect();
   }
 };
