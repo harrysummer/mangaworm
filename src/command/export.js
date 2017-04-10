@@ -5,6 +5,7 @@ import Config, { servers } from '../config'
 import DB from '../database';
 import inquirer from 'inquirer';
 import util from 'util';
+import pace from 'pace';
 
 async function exportBook(id, db, version, from, to, output) {
   let manga = await db.findManga(id);
@@ -56,11 +57,20 @@ async function exportBook(id, db, version, from, to, output) {
   zipfile.outputStream.pipe(fs.createWriteStream(output)).on('close',
     () => console.log('Done'));
 
+  let len = 0;
+  for (let item of volumes) {
+    let volume = await db.findVolume(item.url);
+    len += volume[0].pages.length;
+  }
+  if (len == 0)
+    throw new Error('Empty selection!');
+  let bar = pace(len);
   let padToFour = number => number <= 9999 ? ("000"+number).slice(-4) : number;
   for (let item of volumes) {
     let volume = await db.findVolume(item.url);
     for (let imageUrl of volume[0].pages) {
       let image = await db.findImage(imageUrl);
+      bar.op();
       image = image[0];
       let entry = image.volumeTitle + "/page_" + padToFour(image.pageNumber) + ".jpg";
       let buf= buffer.Buffer.from(image.data.value(), 'binary');
