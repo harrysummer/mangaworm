@@ -3,7 +3,7 @@ import errors from 'request-promise-native/errors';
 import Bottleneck from 'bottleneck';
 import {promisify} from './async-api';
 
-let limiter = new Bottleneck(1, 100);
+let limiter = new Bottleneck(5, 100);
 
 export default class Downloader {
   constructor() {
