@@ -6,7 +6,7 @@ import { all } from '../async-api';
 import inquirer from 'inquirer';
 import pace from 'pace';
 
-async function sync(db, id, version, from, to) {
+async function sync(db, id, version, from, to, force) {
   let ret = /^([^\/]+)\/(.*)$/.exec(id);
   if (ret == null) {
     throw new Error('Id "' + id + '" is invalid.');
@@ -65,6 +65,7 @@ async function sync(db, id, version, from, to) {
   let len = 0;
   let bar = pace(1);
   let downloader = new Downloader();
+  let failedCount = 0;
   await all(volumes, async (volume) => {
     let volumeData = await crawler.browse(volume.url);
     len += volumeData.pages.length;
@@ -79,10 +80,22 @@ async function sync(db, id, version, from, to) {
     await db.updateVolume(volumeData);
 
     await all(volumeData.pages, async (imageUrl,index) => {
-      let imageData = await downloader.get(imageUrl, {
-        referer: volume.url,
-        retry: 1,
-      });
+      let imageData = await db.findImage(imageUrl);
+      if (!force && imageData.length > 0) {
+        bar.op();
+        return;
+      }
+      try {
+        imageData = await downloader.get(imageUrl, {
+          referer: volume.url,
+          retry: 5,
+        });
+      } catch (e) {
+        console.error(e.message);
+        bar.op();
+        failedCount++;
+        return;
+      }
       bar.op();
       imageData.volumeTitle = volume.title;
       imageData.volumeUrl = volume.url;
@@ -95,6 +108,8 @@ async function sync(db, id, version, from, to) {
     });
   });
 
+  if (failedCount > 0)
+    console.error('有' + failedCount + '张图片下载失败，请手动重试');
 }
 
 export default {
@@ -119,6 +134,12 @@ export default {
       default: 0,
       describe: '结束编号',
     },
+    force: {
+      type: 'boolean',
+      alias: 'f',
+      default: false,
+      describe: '强制下载',
+    },
   },
   handler: async (argv) => {
     let config = new Config();
@@ -126,7 +147,7 @@ export default {
     let db = new DB();
     await db.connect(conf.server_name, conf.server_port, conf.db_name);
     await all(_.map(argv._.slice(1),
-      (id) => sync(db, id, argv.version, argv.from, argv.to)));
+      (id) => sync(db, id, argv.version, argv.from, argv.to, argv.force)));
     await db.disconnect();
   }
 }
