@@ -42,4 +42,8 @@ export default class MangaDB {
     let collection = await this.db.createCollection('image');
     collection.replaceOne({_id: data._id}, data, {upsert: true});
   }
+
+  async findManga(id) {
+    return await this.db.collection('manga').find({}).toArray();
+  }
 }
