@@ -20,7 +20,7 @@ export default class MangaDB {
   }
 
   async updateManga(data) {
-    if (!'db' in this)
+    if (!('db' in this))
       throw new Error('No database connected.');
 
     let collection = await this.db.createCollection('manga');
@@ -28,7 +28,7 @@ export default class MangaDB {
   }
 
   async updateVolume(data) {
-    if (!'db' in this)
+    if (!('db' in this))
       throw new Error('No database connected.');
 
     let collection = await this.db.createCollection('volume');
@@ -36,7 +36,7 @@ export default class MangaDB {
   }
 
   async updateImage(data) {
-    if (!'db' in this)
+    if (!('db' in this))
       throw new Error('No database connected.');
     data.data = new mongodb.Binary(Buffer.from(data.data, 'binary'));
     let collection = await this.db.createCollection('image');

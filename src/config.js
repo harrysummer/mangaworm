@@ -2,6 +2,7 @@ import path from 'path';
 import AppDirectory from 'appdirectory';
 import inquirer from 'inquirer';
 import yaml from 'js-yaml';
+import util from 'util';
 import dmzj from './server/dmzj';
 import { fs } from './async-api';
 
@@ -53,25 +54,66 @@ export default class Config {
     await fs.writeFileAsync(this.config_file, configContent);
   }
 
-  async parse() {
+  async get(name) {
     try {
       await fs.accessAsync(this.config_file, fs.constants.F_OK);
     } catch(err) {
-      try {
-        await this.create();
-      } catch(err) {
-        console.error('Cannnot create configuration file.');
-        process.exit(-1);
-      }
+      await this.create();
     }
 
-    let content;
-    try {
-      content = await fs.readFileAsync(this.config_file);
-    } catch(err) {
-      console.log(err.message);
-      process.exit(-1);
+    let content = await fs.readFileAsync(this.config_file);
+    let conf = yaml.safeLoad(content);
+    if (name === undefined) {
+      return conf;
+    } else {
+      name = name.split('.');
+      for (let i = 0; i < name.length; i++) {
+        conf = conf[name[i]];
+        if (conf === undefined)
+          return conf;
+      }
+      return conf;
     }
-    return yaml.safeLoad(content);
+  }
+
+  async set(name, value) {
+    try {
+      await fs.accessAsync(this.config_file, fs.constants.F_OK);
+    } catch(err) {
+      await this.create();
+    }
+
+    let content = await fs.readFileAsync(this.config_file);
+    let conf = yaml.safeLoad(content);
+    let isdelete = value === undefined;
+    name = name.split('.');
+
+    let prev = {dummy: conf};
+    let attrname;
+    let cur = prev.dummy;
+    for (let i = 0; i < name.length; i++) {
+      if (typeof cur === 'object') {
+        if (!(name[i] in cur)) {
+          if (!isdelete) {
+            cur[name[i]] = {};
+          } else {
+            return;
+          }
+        }
+        prev = cur;
+        cur = cur[name[i]];
+        attrname = name[i];
+      } else {
+        throw new Error('Cannot walk to ' + util.inspect(name));
+      }
+    }
+    if (!isdelete) {
+      prev[attrname] = value;
+    } else {
+      delete prev[attrname];
+    }
+
+    let configContent = yaml.safeDump(conf);
+    await fs.writeFileAsync(this.config_file, configContent);
   }
 };

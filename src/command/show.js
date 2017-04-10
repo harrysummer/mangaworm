@@ -31,7 +31,7 @@ async function show(id, raw) {
   }
   let repo = ret[1];
   let name = ret[2];
-  if (!repo in servers) {
+  if (!(repo in servers)) {
     throw new Error('Server "' + repo + '" is not available');
   }
   let crawler = new servers[repo]();

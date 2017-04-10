@@ -12,7 +12,7 @@ async function sync(db, id, version, from, to) {
   }
   let repo = ret[1];
   let name = ret[2];
-  if (!repo in servers) {
+  if (!(repo in servers)) {
     throw new Error('Server "' + repo + '" is not available');
   }
   let crawler = new servers[repo]();
@@ -115,12 +115,9 @@ export default {
   },
   handler: async (argv) => {
     let config = new Config();
-    let conf = await config.parse();
+    let conf = await config.get('database');
     let db = new DB();
-    await db.connect(
-      conf.database.server_name,
-      conf.database.server_port,
-      conf.database.db_name);
+    await db.connect(conf.server_name, conf.server_port, conf.db_name);
     await all(_.map(argv._.slice(1),
       (id) => sync(db, id, argv.version, argv.from, argv.to)));
     await db.disconnect();
