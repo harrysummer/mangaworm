@@ -136,7 +136,7 @@ export default {
     },
     force: {
       type: 'boolean',
-      alias: 'f',
+      alias: 'F',
       default: false,
       describe: '强制下载',
     },
