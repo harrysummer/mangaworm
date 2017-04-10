@@ -4,6 +4,7 @@ import DB from '../database';
 import Downloader from '../downloader';
 import { all } from '../async-api';
 import inquirer from 'inquirer';
+import pace from 'pace';
 
 async function sync(db, id, version, from, to) {
   let ret = /^([^\/]+)\/(.*)$/.exec(id);
@@ -61,9 +62,14 @@ async function sync(db, id, version, from, to) {
   await db.updateManga(result);
 
   // server.browse
+  let len = 0;
+  let bar = pace(1);
   let downloader = new Downloader();
   await all(volumes, async (volume) => {
     let volumeData = await crawler.browse(volume.url);
+    len += volumeData.pages.length;
+    bar.total = len;
+
     volumeData.name = volume.title;
     volumeData.version = result.versions[version].version;
     volumeData.managId = result.id;
@@ -77,6 +83,7 @@ async function sync(db, id, version, from, to) {
         referer: volume.url,
         retry: 1,
       });
+      bar.op();
       imageData.volumeTitle = volume.title;
       imageData.volumeUrl = volume.url;
       imageData.mangaId = result.id;

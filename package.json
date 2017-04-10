@@ -19,6 +19,7 @@
     "mkdirp": "^0.5.1",
     "mongodb": "^2.2.25",
     "node-config": "0.0.2",
+    "pace": "0.0.4",
     "request": "^2.81.0",
     "request-promise-native": "^1.0.3",
     "request-x-ray": "^0.1.4",
