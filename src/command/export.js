@@ -66,16 +66,18 @@ async function exportBook(id, db, version, from, to, output) {
     throw new Error('Empty selection!');
   let bar = pace(len);
   let padToFour = number => number <= 9999 ? ("000"+number).slice(-4) : number;
+  let volumeIndex = 0;
   for (let item of volumes) {
     let volume = await db.findVolume(item.url);
     for (let imageUrl of volume[0].pages) {
       let image = await db.findImage(imageUrl);
       bar.op();
       image = image[0];
-      let entry = image.volumeTitle + "/page_" + padToFour(image.pageNumber) + ".jpg";
+      let entry = padToFour(volumeIndex) + '_' + image.volumeTitle + "/page_" + padToFour(image.pageNumber) + ".jpg";
       let buf= buffer.Buffer.from(image.data.value(), 'binary');
       zipfile.addBuffer(buf, entry);
     }
+    volumeIndex++;
   }
   zipfile.end();
 }
