@@ -5,7 +5,10 @@ import request from 'request';
 import Nightmare from 'nightmare';
 import util from 'util';
 import _ from 'underscore';
-import { promisifyCallback } from '../async-api';
+import { promisify,promisifyCallback } from '../async-api';
+import Bottleneck from 'bottleneck';
+
+let limiter = new Bottleneck(5, 100);
 
 let x = Xray({
   filters: {
@@ -38,6 +41,8 @@ export default class {
 
   async search(keyword) {
     x.driver(makeDriver(request.defaults()));
+    x.concurrency(5);
+    x.throttle(1, 100);
     let html = await promisifyCallback(x(
       this.SEARCH_PAGE_PREFIX + encodeURIComponent(keyword), 'body@html'));
     let notfound = await promisifyCallback(x(html, '.mod_960wr', {text:'span'}));
@@ -61,6 +66,8 @@ export default class {
 
   async query(url) {
     x.driver(makeDriver(request.defaults()));
+    x.concurrency(5);
+    x.throttle(1, 100);
     let html = await promisifyCallback(x(url, 'body@html'));
     let data = await promisifyCallback(x(
       html,
@@ -103,9 +110,9 @@ export default class {
 
   async browse(url) {
     let nightmare = Nightmare();
-    let data = await nightmare
+    let data = await limiter.schedule(() => nightmare
     .goto(url)
-    .evaluate(() => DATA);
+    .evaluate(() => DATA));
 
     await nightmare.end();
     let pages = _.map(data.picture, (item) => item.url);
