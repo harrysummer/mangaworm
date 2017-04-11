@@ -1,6 +1,8 @@
+import vm from 'vm';
 import Xray from 'x-ray';
 import makeDriver from 'request-x-ray';
 import request from 'request';
+import Nightmare from 'nightmare';
 import util from 'util';
 import _ from 'underscore';
 import { promisifyCallback } from '../async-api';
@@ -97,5 +99,20 @@ export default class {
     }];
     delete data.episodes;
     return data;
+  }
+
+  async browse(url) {
+    let nightmare = Nightmare();
+    let data = await nightmare
+    .goto(url)
+    .evaluate(() => DATA);
+
+    await nightmare.end();
+    let pages = _.map(data.picture, (item) => item.url);
+    return {
+      url: url,
+      pageCount: pages.length,
+      pages: pages
+    };
   }
 }
