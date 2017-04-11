@@ -12,10 +12,10 @@ async function search(query, raw) {
     }
     result.forEach((item) => {
       console.log(colors.fg.bright[2] + item.id + colors.reset);
-      console.log(colors.fg.bright[4] + item.title + '\t'
-        + colors.fg.standard[4] + item.author
-        + (item.complete ? ' ' +
-          colors.fg.bright[1] + "已完结" : '')
+      console.log(colors.fg.bright[4] + item.title + '   '
+        + ('author' in item ? ' ' + colors.fg.standard[4] + item.author : '')
+        + ('status' in item ? ' ' + colors.fg.bright[1] + item.status : '')
+        + (item.complete ? ' ' + colors.fg.bright[1] + "已完结" : '')
         + colors.reset);
     });
   });

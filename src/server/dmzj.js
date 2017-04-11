@@ -15,7 +15,7 @@ let x = Xray({
 export default class {
   constructor() {
     this.ID_PREFIX = 'dmzj/'
-    this.VOLUME_PAGE_PREFIX = 'http://manhua.dmzj.com/';
+    this.MANGA_PAGE_PREFIX = 'http://manhua.dmzj.com/';
     this.IMAGE_PREFIX = 'http://images.dmzj.com/';
   }
 
@@ -31,7 +31,7 @@ export default class {
   id2url(id) {
     if (!id.startsWith(this.ID_PREFIX))
       throw new Error('ID error: ' + id);
-    return this.VOLUME_PAGE_PREFIX + id.substr(this.ID_PREFIX.length);
+    return this.MANGA_PAGE_PREFIX + id.substr(this.ID_PREFIX.length);
   }
 
   async search(keyword) {

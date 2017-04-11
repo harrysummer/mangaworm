@@ -4,12 +4,14 @@ import inquirer from 'inquirer';
 import yaml from 'js-yaml';
 import util from 'util';
 import dmzj from './server/dmzj';
+import tencent from './server/tencent';
 import { fs } from './async-api';
 
 export const app_name = "mangaworm";
 
 export let servers = {
-  dmzj
+  dmzj,
+  tencent,
 };
 
 export default class Config {
