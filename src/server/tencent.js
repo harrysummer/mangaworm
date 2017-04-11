@@ -10,12 +10,13 @@ let x = Xray({
     trim: (value) => typeof value === 'string' ? value.trim() : value,
     https2http: (value) => typeof value === 'string' ? value.replace(/^https:/, 'http:') : value,
     largeImage: (value) => typeof value === 'string' ? value.replace(/\/\d+$/, '/0') : value,
+    stripBracket: (value) => typeof value === 'string' && /^\[(.*)\]$/.exec(value) !== null ? /^\[(.*)\]$/.exec(value)[1] : value,
   }
 });
 
 export default class {
   constructor() {
-    this.ID_PREFIX = 'tecent/';
+    this.ID_PREFIX = 'tencent/';
     this.SEARCH_PAGE_PREFIX = 'http://ac.qq.com/Comic/searchList/search/';
     this.MANGA_PAGE_PREFIX = 'http://ac.qq.com/Comic/comicInfo/id/';
   }
@@ -53,6 +54,48 @@ export default class {
     data.forEach((item) => {
       item.id = this.url2id(item.url);
     });
+    return data;
+  }
+
+  async query(url) {
+    x.driver(makeDriver(request.defaults()));
+    let html = await promisifyCallback(x(url, 'body@html'));
+    let data = await promisifyCallback(x(
+      html,
+      '#J_403_msg'));
+    if (data.length > 0)
+      throw new Error(data);
+
+    data = await promisifyCallback(x(
+      html,
+      '#special_bg',
+      {
+        title: 'h2.works-intro-title | trim',
+        cover: '.works-cover img[src]@src',
+        author: 'a.works-author-name | trim',
+        status: 'label.works-intro-status | trim',
+        popularity: 'p.works-intro-digi span:contains("人气") em | trim',
+        theme: ['div[style="display:none"] a[href*="theme"]@title'],
+        update: 'a.works-ft-new | trim | stripBracket',
+        detail: 'p.works-intro-short | trim',
+        episodes: x(
+          'ol.chapter-page-all span.works-chapter-item',
+          [{
+            title: 'a@title',
+            url: 'a@href'
+          }]
+        ),
+      }
+    ));
+
+    data.id = this.url2id(url);
+    data.url = url;
+    data.blocked = false;
+    data.versions = [{
+      version: 'default',
+      episodes: 'episodes' in data ? data.episodes : []
+    }];
+    delete data.episodes;
     return data;
   }
 }
