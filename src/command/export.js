@@ -62,6 +62,9 @@ async function exportBook(id, db, version, from, to, output, quiet) {
   let len = 0;
   for (let item of volumes) {
     let volume = await db.findVolume(item.url);
+    if (volume.length == 0) {
+      throw new Error('Some volumes are not found locally. Please sync first');
+    }
     len += volume[0].pages.length;
   }
   if (len == 0)
@@ -73,6 +76,9 @@ async function exportBook(id, db, version, from, to, output, quiet) {
     let volume = await db.findVolume(item.url);
     for (let imageUrl of volume[0].pages) {
       let image = await db.findImage(imageUrl);
+      if (image.length == 0) {
+        throw new Error('Some images are not found locally. Please sync first');
+      }
       bar.op();
       image = image[0];
       let entry = padToFour(volumeIndex) + '_' + image.volumeTitle + "/page_" + padToFour(image.pageNumber) + ".jpg";
