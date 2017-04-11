@@ -1,4 +1,4 @@
-NODE = `which node`
+NODE = node
 BABEL = node_modules/.bin/babel
 
 ARGS := --help

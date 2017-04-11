@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import yargs from 'yargs';
 import search from './command/search';
 import show from './command/show';
@@ -18,5 +19,6 @@ yargs.usage('mangaworm -- your personal manga management software')
   .command(list)
   .command(config)
   .command(export_)
+  .demandCommand(1)
   .help()
   .argv;
