@@ -23,7 +23,7 @@ export default class MangaDB {
     if (!('db' in this))
       throw new Error('No database connected.');
 
-    await this.db.collection('manga')replaceOne({_id: data._id}, data, {upsert: true});
+    await this.db.collection('manga').replaceOne({_id: data._id}, data, {upsert: true});
   }
 
   async updateVolume(data) {
