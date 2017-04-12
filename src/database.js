@@ -23,24 +23,21 @@ export default class MangaDB {
     if (!('db' in this))
       throw new Error('No database connected.');
 
-    let collection = await this.db.createCollection('manga');
-    await collection.replaceOne({_id: data._id}, data, {upsert: true});
+    await this.db.collection('manga')replaceOne({_id: data._id}, data, {upsert: true});
   }
 
   async updateVolume(data) {
     if (!('db' in this))
       throw new Error('No database connected.');
 
-    let collection = await this.db.createCollection('volume');
-    await collection.replaceOne({_id: data._id}, data, {upsert: true});
+    await this.db.collection('volume').replaceOne({_id: data._id}, data, {upsert: true});
   }
 
   async updateImage(data) {
     if (!('db' in this))
       throw new Error('No database connected.');
     data.data = new mongodb.Binary(Buffer.from(data.data, 'binary'));
-    let collection = await this.db.createCollection('image');
-    collection.replaceOne({_id: data._id}, data, {upsert: true});
+    await this.db.collection('image').replaceOne({_id: data._id}, data, {upsert: true});
   }
 
   async findManga(id) {
