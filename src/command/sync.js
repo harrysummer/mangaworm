@@ -75,7 +75,7 @@ async function sync(db, id, version, from, to, force, quiet) {
 
     volumeData.name = volume.title;
     volumeData.version = result.versions[version].version;
-    volumeData.managId = result.id;
+    volumeData.mangaId = result.id;
     volumeData.mangaUrl = result.url;
 
     volumeData._id = volumeData.url;

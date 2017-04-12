@@ -73,4 +73,18 @@ export default class MangaDB {
     this.db.collection('image').createIndex('mangaId');
     return await this.db.collection('image').deleteMany(filter);
   }
+
+  async countManga(filter) {
+    return await this.db.collection('manga').count(filter);
+  }
+
+  async countVolume(filter) {
+    this.db.collection('volume').createIndex('mangaId');
+    return await this.db.collection('volume').count(filter);
+  }
+
+  async countImage(filter) {
+    this.db.collection('image').createIndex('mangaId');
+    return await this.db.collection('image').count(filter);
+  }
 }

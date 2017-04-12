@@ -8,14 +8,16 @@ async function list(db, raw) {
     console.log(manga);
     return;
   }
-  manga.forEach((item) => {
-    console.log(colors.fg.bright[2] + item.id + colors.reset);
-    console.log(colors.fg.bright[4] + item.title + '\t'
-      + colors.fg.standard[4] + item.author
-      + (item.complete ? ' ' +
-        colors.fg.bright[1] + "已完结" : '')
+  for (let item of manga) {
+    let volumeCount = await db.countVolume({mangaId: item._id});
+    let imageCount = await db.countImage({mangaId: item._id});
+    console.log(colors.fg.bright[2] + item.id + colors.reset + '\t'
+      + colors.fg.bright[4] + ' ' + item.title
+      + colors.fg.standard[4] + ' ' + item.author
+      + (item.complete ? ' ' + colors.fg.bright[1] + "已完结" : '')
       + colors.reset);
-  });
+    console.log('\t已下载：' + volumeCount + '卷，共计' + imageCount + '张图片');
+  }
 }
 
 export default {
