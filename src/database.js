@@ -59,4 +59,18 @@ export default class MangaDB {
     let query = {_id: url};
     return await this.db.collection('image').find(query).toArray();
   }
+
+  async removeManga(filter) {
+    return await this.db.collection('manga').deleteMany(filter);
+  }
+
+  async removeVolume(filter) {
+    this.db.collection('volume').createIndex('mangaId');
+    return await this.db.collection('volume').deleteMany(filter);
+  }
+
+  async removeImage(filter) {
+    this.db.collection('image').createIndex('mangaId');
+    return await this.db.collection('image').deleteMany(filter);
+  }
 }
