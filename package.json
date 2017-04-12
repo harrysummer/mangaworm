@@ -20,7 +20,6 @@
     "js-yaml": "^3.8.3",
     "mkdirp": "^0.5.1",
     "mongodb": "^2.2.25",
-    "nightmare": "^2.10.0",
     "node-config": "0.0.2",
     "pace": "0.0.4",
     "pdfkit": "^0.8.0",

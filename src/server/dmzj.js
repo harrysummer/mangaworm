@@ -11,6 +11,8 @@ let x = Xray({
     trim: (value) => typeof value === 'string' ? value.trim() : value
   }
 });
+x.concurrency(5);
+x.throttle(1, 100);
 
 export default class {
   constructor() {
@@ -40,8 +42,6 @@ export default class {
       form: { keywords: keyword },
     });
     x.driver(driver);
-    x.concurrency(5);
-    x.throttle(1, 100);
     let data = await promisifyCallback(x(
         'https://www.dmzj.com/dynamic/o_search/index',
         '.wrap_list_con li',
@@ -65,8 +65,6 @@ export default class {
 
   async query(url) {
     x.driver(makeDriver(request.defaults()));
-    x.concurrency(5);
-    x.throttle(1, 100);
     let data = await promisifyCallback(x(
       url,
       '.wrap',
@@ -126,8 +124,6 @@ export default class {
 
   async browse(url) {
     x.driver(makeDriver(request.defaults()));
-    x.concurrency(5);
-    x.throttle(1, 100);
     let data = await promisifyCallback(x(
       url,
       'head script:contains("arr_pages")'));
