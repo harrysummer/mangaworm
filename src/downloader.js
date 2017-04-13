@@ -44,6 +44,10 @@ export default class Downloader {
           throw e;
         }
       }
+      if (data.headers['content-length'] != data.body.length) {
+        console.error('Download incomplete');
+        continue;
+      }
       return {
         url: url,
         type: data.headers['content-type'],

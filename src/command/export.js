@@ -79,15 +79,19 @@ async function exportBook(id, db, version, from, to, output, quiet, format) {
   let zipfile = new yazl.ZipFile();
   let doc = null;
   switch(format) {
-    case FORMAT_CBZ: doc = new yazl.ZipFile(); break;
+    case FORMAT_CBZ:
+      doc = new yazl.ZipFile();
+      doc.outputStream.pipe(fs.createWriteStream(output)).on('close',
+        () => console.log('Done'));
+      break;
     case FORMAT_PDF:
       doc = new PDFDocument({ autoFirstPage: false });
       if ('title' in manga) doc.info.Title = manga.title;
       if ('author' in manga) doc.info.Author = manga.author;
+      doc.pipe(fs.createWriteStream(output)).on('close',
+        () => console.log('Done'));
       break;
   }
-  doc.pipe(fs.createWriteStream(output)).on('close',
-    () => console.log('Done'));
   for (let item of volumes) {
     let volume = await db.findVolume(item.url);
     for (let imageUrl of volume[0].pages) {

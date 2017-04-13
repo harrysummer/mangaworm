@@ -4,6 +4,7 @@ import inquirer from 'inquirer';
 import yaml from 'js-yaml';
 import util from 'util';
 import dmzj from './server/dmzj';
+import dm5 from './server/dm5';
 import tencent from './server/tencent';
 import { fs } from './async-api';
 
@@ -11,6 +12,7 @@ export const app_name = "mangaworm";
 
 export let servers = {
   dmzj,
+  dm5,
   tencent,
 };
 

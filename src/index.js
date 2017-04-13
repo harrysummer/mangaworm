@@ -13,7 +13,6 @@ process.on('unhandledRejection', (err) => {
   console.log(err.stack);
 });
 
-import tx from './server/tencent';
 yargs.usage('mangaworm -- your personal manga management software')
   .command(search)
   .command(show)
